@@ -41,12 +41,14 @@ class ListingController extends Controller
             'description' => 'required | min:50',
             'company' => ['required', Rule::unique('listings', 'company')],
             'location' => ['required'],
-            'email' => 'required | unique | email',
+            'email' => 'required | email',
             'tags' => 'required',
             'website' => ['required'],
         ]);
 
-        return redirect('/');
+        Listing::create($formData);
+
+        return redirect('/')->with('message', 'Listing Created Successfully');
     }
 
     /**
