@@ -16,7 +16,8 @@ class ListingController extends Controller
     {
         // dd($request->tag);
         // dd(request['tag']);
-        $listings = Listing::latest()->filter(request(['tag', 'search']))->get();
+        // $listings = Listing::latest()->filter(request(['tag', 'search']))->get();
+        $listings = Listing::latest()->filter(request(['tag', 'search']))->paginate(4);
         return view('listings.index', [
             'listings' => $listings
         ]);
@@ -35,6 +36,7 @@ class ListingController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->file('logo'));
         // dd($request->all());
         $formData = $request->validate([
             'title' => 'required | min:3',
@@ -46,9 +48,13 @@ class ListingController extends Controller
             'website' => ['required'],
         ]);
 
+        if($request->hasFile('logo')){
+            $formData['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
         Listing::create($formData);
 
-        return redirect('/')->with('message', 'Listing Created Successfully');
+        return redirect('/')->with('message', 'Listing Created Successfully!');
     }
 
     /**
@@ -64,24 +70,44 @@ class ListingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Listing $listing)
     {
-        //
+        return view('listings.edit', [
+            'listing' => $listing
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Listing $listing)
     {
-        //
+        $formData = $request->validate([
+            'title' => 'required | min:3',
+            'description' => 'required | min:50',
+            'company' => 'required',
+            'location' => 'required',
+            'email' => 'required | email',
+            'tags' => 'required',
+            'website' => ['required'],
+        ]);
+
+        if($request->hasFile('logo')){
+            $formData['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        $listing->update($formData);
+
+        return back()->with('message', 'Listing Updated Successfully!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Listing $listing)
     {
-        //
+        $listing->delete();
+
+        return redirect('/')->with('message', 'Listing Deleted Successfully!');
     }
 }
