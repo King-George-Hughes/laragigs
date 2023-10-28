@@ -10,6 +10,7 @@ class Listing extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'title',
         'description',
         'company',
@@ -34,5 +35,10 @@ class Listing extends Model
             // ->orWhere('price', '=',  request('search'))
             ;
         }
+    }
+
+    // Relationship
+    public function user(){
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

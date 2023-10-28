@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Listing;
 use Illuminate\Http\Request;
+// use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class ListingController extends Controller
@@ -20,6 +21,14 @@ class ListingController extends Controller
         $listings = Listing::latest()->filter(request(['tag', 'search']))->paginate(4);
         return view('listings.index', [
             'listings' => $listings
+        ]);
+    }
+
+    public function manage(){
+        $getCurrentLoggedInUserListings = auth()->user()->listings()->get();
+
+        return view('listings.manage', [
+            'listings' => $getCurrentLoggedInUserListings
         ]);
     }
 
@@ -52,6 +61,8 @@ class ListingController extends Controller
             $formData['logo'] = $request->file('logo')->store('logos', 'public');
         }
 
+        $formData['user_id'] = auth()->id();
+
         Listing::create($formData);
 
         return redirect('/')->with('message', 'Listing Created Successfully!');
@@ -72,6 +83,10 @@ class ListingController extends Controller
      */
     public function edit(Listing $listing)
     {
+        if($listing->user_id != auth()->id()){
+            abort(403, 'Unauthorized Access');
+        }
+        
         return view('listings.edit', [
             'listing' => $listing
         ]);
@@ -82,6 +97,10 @@ class ListingController extends Controller
      */
     public function update(Request $request, Listing $listing)
     {
+        if($listing->user_id != auth()->id()){
+            abort(403, 'Unauthorized Access');
+        }
+
         $formData = $request->validate([
             'title' => 'required | min:3',
             'description' => 'required | min:50',
@@ -106,6 +125,10 @@ class ListingController extends Controller
      */
     public function destroy(Listing $listing)
     {
+        if($listing->user_id != auth()->id()){
+            abort(403, 'Unauthorized Access');
+        }
+        
         $listing->delete();
 
         return redirect('/')->with('message', 'Listing Deleted Successfully!');
